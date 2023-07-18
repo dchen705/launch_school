@@ -1,0 +1,191 @@
+1
+# Write a method that takes two arguments, a string and a positive integer, and prints the string as many times as the integer indicates.
+
+How to print string multiple times?
+
+2
+
+# Write a method that takes one integer argument, which may be positive, negative, or zero. This method returns true if the number's absolute value is odd. You may assume that the argument is a valid integer value.
+
+
+# instinct
+# how do i check if number is odd?
+# mod
+
+3
+ Write a method that takes one argument, a positive integer, and returns a string of alternating 1s and 0s, always starting with 1. The length of the string should match the given integer.
+
+# instinct (going straight to the algo)
+# use while loop + counter to repeat
+# add an if statement to check odd or even to return 1 or 0
+
+
+# my instinct is to skip through ped and go straight to ac
+# for simple easy probs, getting better at seeing how pedac 
+# fits into personal problem solving process
+
+while coding, # up to this point i realize my instinct missed a detail, i needed
+# to know string interpolation too.
+
+answer key:
+# create empty array
+# iterate block of code using .times
+# use .even and ternary operation on the index of block to push new number to array
+# use .join to string combine elements of arrays
+
+4
+# Write a method that takes two arguments, a positive integer and a boolean, and calculates the bonus for a given salary. If the boolean is true, the bonus should be half of the salary. If the boolean is false, the bonus should be 0.
+
+# my reflex algo
+# if else - honestly statements built into the prompt, just have it return
+# rather than print the bonus value...
+
+# answer key: used a ternary operator, again, I could have be more concise albeit less clear
+# when given a simple conditional
+
+5
+# Write a method that will take a short line of text, and print it within a box.
+
+# reflex data structure
+# ^ this time instincts tell me to write out the output's data line by line
+
+# Example
+# print_in_box('')
+# +--+
+# |  |
+# |  |
+# |  |
+# +--+
+
+# 5 lines
+# the start and end char are constant values from line 1-5 are (+, |, |, |, |)
+# the middle chars are == " " + either - or " " times input_string's length + " "
+
+# DS i will print out?
+# I know how to either use arrays of chars and convert to string or strings directly
+
+# if i use arrays of chars, i learned can use .join to convert to string
+
+# reflex algo
+# The main pattern here is we are printing in 2D, i can solve it with a
+# a nested loop (from experience)
+# The outer loop will cursor select lines 1 through 5 
+# step into the outer loop
+# we shall set if else for each index to print each data structure specified
+
+# ah so for printing 2d DS, i like to do EDAC...
+
+# at this point in code, i realized i need to look up how to add look up
+# string length checking method and adding elements from one array to another.
+# I realize alternatively to a loop and if statement, more simply
+# i could have just made 5 puts statements in order for each line.
+
+# something i might need to work on is taking a bit of time to come up with 1-2 ideas
+# instead of jumping to first idea that comes to mind. my fear is that i cannot
+# think of alternatives in reasonable time.
+
+# but answer key is simpler... well actually it's within same 1-1.25 magnitude so won't nitpick
+
+# they relied more on string interpolation.
+
+# further exploration:
+# truncates message if too wide for standard window (80 columns)
+
+# low complexity - only reflex algo required
+
+# simply pre-iteration, use conditional to check length of string
+# and truncate to 80 length
+
+# wrapping long lines
+
+# for this feature, i strongly suspect one method is pre-iterative
+#   printing, we first take the long string as input and use
+#   a loop to recursively break it down into smaller chunks
+  
+# low complexity - i guess my reflex intuition is enough.
+
+# actually i want to check DS
+# we need to make an array of arrays of single chars, total elements of the inner arrays 76 or less
+# i can also output array of strings too..
+
+# back to algo
+# once i make the recursive method that takes long string and outputs array of arrays... i can simply
+# iterate the outer arrays to print the long str.
+
+
+
+DETAILS needed to figure out wrapping (key is i had fundamentals to debug this, I didn't need ot memorize it)
+
+# base case is if str > greater than 76
+# need method that splits off original string mutating original and returning split substring in intial. since its
+# recursion, calling from top of stack, we will split from the back, and join into array at the post-recursion portion
+# of the method... doesn't rly matter,, i can iterate array in reverse too.
+
+# if string needs to wrap, the last line that's less than 76 chars, will get filled the with whitespace to match other previous lines
+      str = str.insert(str.length, ' ' * (76 - str.length))
+      
+# realized behavior of arr << str, is not creating arrays of strings separated by commas
+# no, according to docs they are, i guess its the puts that's removing the commas
+# how to iterate arrays again?
+
+# realized for multiline strings, I needed to concatenate them
+# couldn't simply hit enter -> as that gets interpreted as part of string
+
+note for self: 
+i was recursing, call stack goes from top, so then why wasn't my array of chunks backwards? Well, I appended each substring of the entire string
+before I called the recursion.
+
+this series:
+if str.length < 76
+    end_line = "+#{'-' * (str.length + 2)}+"
+    empty_line = "|#{' ' * (str.length + 2)}|"
+  elsif str.length >= 76
+    end_line = "+#{'-' * 78}+"
+    empty_line = "|#{' ' * 78}|"
+  end
+  
+  can be turned into a ternary like by this student:
+  outer = message.length > 76 ? "+#{'-' * (78)}+" : "+#{'-' * (message.length+2)}+"
+  inner = message.length > 76 ? "|#{' ' * (78)}|" : "|#{' ' * (message.length+2)}|"
+
+
+it's kinda fun/interesting looking at how other's came up with a solution:
+one guy used string#scan... i didn't know it was so powerful
+split_message_arr = message.scan(/.{1,76}/)
+where message is a string, split_message_arr then gets returned an array
+of strings of 76 char strings....
+think u needa know regex or whatever
+
+also used string#prepend
+
+my way was using splice! and push.
+
+one guy has like a function jungle... just functions nested in other functions and having trouble understanding it...
+weird cuz cs50 taught good to abstract away.
+
+
+one guy took it step further and didn't let line break if that break would cause a word to split...
+he did it by distinguishing between the entire string, a line and every word.
+
+trying to read code and realizing it's hard work to read even on same projects...
+"Programming is simply the explanation of a solution to a problem for other humans, incidentally, computers can understand it."
+
+7
+# Mad libs are a simple game where you create a story template with blanks for words. You, or another player, then construct a list of words and place them into the story, creating an often silly or funny story as a result.
+
+# Create a simple mad-lib program that prompts for a noun, a verb, an adverb, and an adjective and injects those into a story that you create.
+
+# reflect algo
+# just prompt for 4 different string variables
+# then print out a string interpolated amalgamation
+
+#  how to stay on same line as prompt when inputting?
+# print
+
+
+9
+# Write a method that takes a non-empty string argument, and returns the middle character or characters of the argument. If the argument has an odd length, you should return exactly one character. If the argument has an even length, you should return exactly two characters.
+
+# reflex algo
+# even/odd? ternatory to find midpoint
+# be wary of int vs float calculation
