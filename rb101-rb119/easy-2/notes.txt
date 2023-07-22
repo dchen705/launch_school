@@ -1,0 +1,58 @@
+Small leaf lessons:
+
+1
+# I was trying to use default argument values but couldn't figure it out
+# weirdly, none of the student's solutions had one either
+# here i could also use .empty? to check 
+
+2
+# bad habit: for clearer code, instead of directly inserting a conversion value into calculations, label the conversion factor with a constant variable
+# # math error, square feet to square inches is not 12 but 12 x 12.
+
+3
+# ok breaking the Kernel#format down:
+# sprintf("%#.2f", bill)
+# the f represents float
+# look at the values before and after the decimal
+# i think # represents add as many spaces as digits, cuz when i change
+# # to 20, it gives 20 trailing to left of decimal. 
+# putting 2 to right of decimal gives me two decimal spaces, i looked
+# up this method returns a string.
+
+ah this also works.. sprintf('%.2f'...
+
+4
+# had to figure out how to look up today's year
+# checked on Date class, Date> today and Date > year
+
+# learned that date isn't in default ruby and i had to import it with require
+# meanwhile there's a class called Time. Time.now.year
+
+5
+# ah you can index select a character from a string using negative integers
+# to select in reverse... like so name[-1] -> selects last character of string.
+
+# could have used chop or chop! to remove the last character too.
+
+6
+# # (1..99).%(2) { |n| puts n }
+# ^ same as 
+# (1..99).step(2) { |n| puts n}
+
+7
+
+8
+
+9
+# In both cases, two variables get assigned to the same string object intially.
+# One can say they both reference, ie: "point to" the same object.
+# In case 1, = is assigning name to point to a different string object while save_name
+# remains pointing at the initial string object.
+# In case 2, there is no reassigning of either variables to point to a different string object.
+# The .upcase! method is mutating as suggested by the ! sign meaning the calling object itself is being changed.
+
+# other people's explanation included object_id
+# and memory addresses.
+
+10
+# forgot could use ternary operation again
