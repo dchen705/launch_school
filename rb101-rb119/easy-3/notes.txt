@@ -1,0 +1,49 @@
+# 2
+
+# Didn't know how to change a string version of arithmetic operator
+# into actual arithmetic operator 
+
+#chat gpt gave a way:
+# operator = '+'
+# operand1 = 5
+# operand2 = 10
+
+# result = operand1.send(operator, operand2)
+# puts result
+
+# the actual way to represent arithmetic operator is
+# with symbol
+# like this
+# :+
+
+3
+
+# reflex algo of meat of problem
+# split string into array of characters
+# for each character element in array,
+# increment an outside intialized counter
+# var
+
+# by default, split without arg splits by space delimiter so splits
+# string into words. to make split by character, make argument //
+
+# ah answer key good solution, remove the spaces and simply count characters of string.
+
+# daamn not bad
+# p "please type a word or multiple words"
+# string = gets.chomp
+# p "there are #{string.split.join.size} characters in #{string}"
+
+# puts "Please write a word, or multiple words: "
+
+# string = gets.chomp
+# chars = string.scan /\S/
+# puts "There are #{chars.length} chsracters in #{string}."
+
+# ^ how does that work?
+
+8
+# ruby review character selectors
+
+9
+numeric literal with leading 0s evaluates to octal number
