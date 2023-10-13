@@ -19,8 +19,6 @@ COMPUTER_MARKER = 'O'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
                 [[1, 5, 9], [3, 5, 7]]              # diagonals
-player_score = 0
-computer_score = 0
 # =========================================================
 def prompt(msg)
   puts "=> #{msg}"
@@ -32,8 +30,8 @@ def select_settings
     \n   2 - Normal", %w[1 2])
   total_matches = validate_user_input('Total Matches', 'Please select number of matches this game:
   (3, 5 or 7)', %w[3 5 7])
-  current_player = validate_user_input('Who First', 'Would you like to choose who goes first? (y/n)', ['y'])
-  [difficulty, total_matches, current_player]
+  who_first = validate_user_input('Who First', 'Would you like to choose who goes first? (y/n)', ['y'])
+  [difficulty, total_matches, who_first]
 end
 
 def validate_user_input(setting, msg, valid_options)
@@ -54,7 +52,7 @@ def validate_user_input(setting, msg, valid_options)
       end
     else
       sleep 1
-      if ['Difficulty' 'Total Matches'].include?(setting)
+      if ['Difficulty', 'Total Matches'].include?(setting)
         prompt "Sorry, that's not a valid response."
       elsif setting == 'Who First'
         return %w[Player Computer].sample
@@ -82,7 +80,7 @@ end
 
 # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
 def display_board(brd)
-  # system('clear')
+  system 'clear'
   puts "You're #{PLAYER_MARKER}. Computer's #{COMPUTER_MARKER}."
   puts ''
   puts '     |     |     '
@@ -134,13 +132,8 @@ def board_full?(brd)
   empty_squares(brd).empty?
 end
 
-def someone_won?(brd, check_grand_winner = false, player_score = 0, computer_score = 0)
-  if check_grand_winner
-    return true if player_score >= 5 || computer_score >= 5
-    false
-  else
-    !!detect_match_winner(brd)
-  end
+def someone_won?(brd)
+  !!detect_match_winner(brd)
 end
 
 def detect_match_winner(brd)
@@ -160,7 +153,7 @@ def update_score(winner, player_score, comp_score)
   else
     comp_score += 1
   end
-  return player_score, comp_score
+  [player_score, comp_score]
 end
 
 def detect_at_risk_square(brd)
@@ -204,18 +197,22 @@ end
 prompt 'Welcome to Tic-Tac-Toe!'
 sleep 1
 difficulty, total_matches, who_first = select_settings
-binding.pry
+player_score = 0
+computer_score = 0
 
-loop do
+total_matches.times do |match|
+  current_player = who_first
+  who_first = alternate_player(who_first)
   board = initialize_board
+  display_board(board)
+
   loop do
-    display_board(board) if current_player == 'Player'
+    sleep 1 if current_player == 'Computer'
     place_piece!(board, current_player)
+    display_board(board)
     current_player = alternate_player(current_player)
     break if someone_won?(board) || board_full?(board)
   end
-
-  display_board(board)
 
   if someone_won?(board)
     match_winner = detect_match_winner(board)
@@ -227,14 +224,20 @@ loop do
 
   prompt "Player score: #{player_score}, Computer score: #{computer_score}"
 
-  if someone_won?(board, true, player_score, computer_score)
-    prompt "#{match_winner} won 5 times! Game Over."
-    break
-  end
+  next if match == total_matches - 1
 
-  prompt 'Play again? (y/n)'
+  prompt 'Start next match? (y/n)'
   answer = gets.chomp
   break unless answer.downcase.start_with?('y')
+end
+
+case player_score <=> computer_score
+when 0
+  prompt 'Game Over.'
+when 1
+  prompt 'You are the grand winner! Game Over.'
+when -1
+  prompt 'Computer is the grand winner! Game Over.'
 end
 
 prompt 'Thanks for playing Tic-Tac-Toe!'
