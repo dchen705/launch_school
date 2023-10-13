@@ -169,20 +169,81 @@ COMPUTER_MARKER = 'O'
     prompt "It's a tie!"
   end
   
-  # UI
-    start interface prompts
-    readability
-    Number to space indicator
-    clearing space
+  # Refactor v2
+    # UI
+      start interface prompts
+      readability
+      Number to space indicator
+      clearing space
+      
+    # Game Features
+      # Best of
+      # Difficulty Select
+      # Toggle who goes first
+      # E to exit
+      # Sleep
     
-  # Game Features
-    # Best of
-    # Difficulty Select
-    # Toggle who goes first
-    # E to exit
-    # Sleep
-  
-  # Unbeatable AI
+     # Algorithm Top Level
+      # Start
+        Welcome
+        Select Difficulty: Easy, Normal
+        Input Best of 3, 5, 7
+        Who goes first?
+      # Main game loop
+        How to Play (optional popup?) during decision
+      # End
+    
+    
+    # Start
+      prompt "Welcome"
+      ai_level, total_matches, current_player = initiate_settings()
+      
+    
+    prompt "Welcome to Tic-Tac-Toe!"
+    sleep 1
+    difficulty, total_matches, who_first = select_settings()
+    
+    
+    def select_settings()
+      difficulty = validate_user_input('Difficulty', "Please select the computer's difficulty:
+        \n   1 - Easy
+        \n   2 - Normal", ['1', '2'] )
+      total_matches = validate_user_input('Total Matches', 'Please select number of matches this game: (3, 5 or 7)', ['3', '5', '7'])
+      current_player = validate_user_input('Who First', 'Would you like to choose who goes first? (y/n)', ['y'])
+      return difficulty, total_matches, current_player
+    end
+    
+    def validate_user_input(setting, msg, valid_options)
+      loop do
+        prompt msg
+        input = gets.chomp
+        input = input[0].downcase if setting == "Who First"
+        if valid_options.include?(input)
+          case setting
+          when 'Difficulty'
+            return input == 1 ? 'Easy' : 'Normal'
+          when 'Total Matches'
+            return input.to_i
+          when 'Who First'
+            prompt "Will you go first? (y/n)"
+            input = gets.chomp
+            return input.start_with?('y')? 'Player' : 'Computer'
+          end
+        else
+          system 'clear'
+          sleep 1
+          if setting == 'Difficulty' || setting == 'Total Matches'
+            prompt "Sorry, that's not a valid response."
+          elsif setting == 'Who First'
+            return ['Player', 'Computer'].sample
+          end
+        end
+      end
+    end
+      
+    
+  # Unbeatable AI (UNFINISHED PROJECT - still have to figure out recursive algo or manually write
+  # AI choice logic algo)
   
   Design an algorithm for computer that can't lose:
   

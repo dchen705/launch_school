@@ -19,13 +19,48 @@ COMPUTER_MARKER = 'O'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
                 [[1, 5, 9], [3, 5, 7]]              # diagonals
-                
-
 player_score = 0
 computer_score = 0
 # =========================================================
 def prompt(msg)
   puts "=> #{msg}"
+end
+
+def select_settings
+  difficulty = validate_user_input('Difficulty', "Please select the computer's difficulty:
+    \n   1 - Easy
+    \n   2 - Normal", %w[1 2])
+  total_matches = validate_user_input('Total Matches', 'Please select number of matches this game:
+  (3, 5 or 7)', %w[3 5 7])
+  current_player = validate_user_input('Who First', 'Would you like to choose who goes first? (y/n)', ['y'])
+  [difficulty, total_matches, current_player]
+end
+
+def validate_user_input(setting, msg, valid_options)
+  loop do
+    prompt msg
+    input = gets.chomp
+    input = input[0].downcase if setting == 'Who First'
+    if valid_options.include?(input)
+      case setting
+      when 'Difficulty'
+        return input == 1 ? 'Easy' : 'Normal'
+      when 'Total Matches'
+        return input.to_i
+      when 'Who First'
+        prompt 'Will you go first? (y/n)'
+        input = gets.chomp
+        return input.start_with?('y') ? 'Player' : 'Computer'
+      end
+    else
+      sleep 1
+      if ['Difficulty' 'Total Matches'].include?(setting)
+        prompt "Sorry, that's not a valid response."
+      elsif setting == 'Who First'
+        return %w[Player Computer].sample
+      end
+    end
+  end
 end
 
 def joinor(empty_squares_arr, delimiter = ', ', conjunction = 'or')
@@ -166,21 +201,13 @@ def alternate_player(current_player)
   current_player == 'Player' ? 'Computer' : 'Player'
 end
 # =========================================================
-prompt "Welcome to Tic-Tac-Toe!"
+prompt 'Welcome to Tic-Tac-Toe!'
+sleep 1
+difficulty, total_matches, who_first = select_settings
+binding.pry
 
 loop do
   board = initialize_board
-  prompt "New match: Would you like to choose who goes first? (y/n)"
-  player_chooses = gets.chomp
-  player_chooses = player_chooses.start_with?('y')? true : false
-  if player_chooses
-    prompt "Will you go first? (y/n)"
-    player_first = gets.chomp
-    current_player = player_first.start_with?('y')? 'Player' : 'Computer'
-  else
-    current_player = ['Player', 'Computer'].sample
-  end
-  
   loop do
     display_board(board) if current_player == 'Player'
     place_piece!(board, current_player)
@@ -197,14 +224,14 @@ loop do
   else
     prompt "It's a tie!"
   end
-  
+
   prompt "Player score: #{player_score}, Computer score: #{computer_score}"
-  
+
   if someone_won?(board, true, player_score, computer_score)
     prompt "#{match_winner} won 5 times! Game Over."
     break
   end
-  
+
   prompt 'Play again? (y/n)'
   answer = gets.chomp
   break unless answer.downcase.start_with?('y')
@@ -212,4 +239,3 @@ end
 
 prompt 'Thanks for playing Tic-Tac-Toe!'
 prompt 'Goodbye!'
-
