@@ -1,17 +1,4 @@
-# Tic-tac-toe
-
-# Overview
-# 2 player game
-# 3 x 3 board
-# Players take turns marking an empty space on board
-# Win condition = 3 marks in a row by 1 player (diagonal including)
-# Tie condition = board filled, no rows by either player
-# Video extracts hard values to constants
-
 # frozen_string_literal: true
-
-require 'pry'
-require 'pry-byebug'
 
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
@@ -36,9 +23,7 @@ end
 
 def get_and_validate_input(setting, msg, valid_options)
   loop do
-    prompt msg
-    input = gets.chomp
-    input = input[0].downcase if setting == 'Who First'
+    input = get_input(setting, msg)
     return select_setting(setting, input) if valid_options.include?(input)
 
     sleep 1
@@ -48,6 +33,13 @@ def get_and_validate_input(setting, msg, valid_options)
       return %w[Player Computer].sample
     end
   end
+end
+
+def get_input(setting, msg)
+  prompt msg
+  input = gets.chomp
+  input = input[0].downcase if setting == 'Who First'
+  input
 end
 
 def select_setting(setting, input)
@@ -63,15 +55,8 @@ def select_setting(setting, input)
   end
 end
 
-def joinor(empty_squares_arr, delimiter = ', ', conjunction = 'or')
-  case empty_squares_arr.size
-  when 0 then ''
-  when 1 then empty_squares_arr[0]
-  when 2 then empty_squares_arr.join(" #{conjunction} ")
-  else
-    joined_squares = empty_squares_arr.join(delimiter)
-    joined_squares.insert(-2, "#{conjunction} ")
-  end
+def alternate_player(current_player)
+  current_player == 'Player' ? 'Computer' : 'Player'
 end
 
 def initialize_board
@@ -101,38 +86,66 @@ def display_board(brd, round, total_matches)
 end
 # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
-def display_help_guide
-  prompt 'Enter a number to mark the corresponding empty square:'
-  puts ' 1 | 2 | 3 '
-  puts '---+---+---'
-  puts ' 4 | 5 | 6 '
-  puts '---+---+---'
-  puts ' 7 | 8 | 9 '
-end
-
 def empty_squares(brd)
   brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
+def place_piece!(board, current_player, difficulty)
+  if current_player == 'Player'
+    player_places_piece!(board)
+  else
+    computer_places_piece!(board, difficulty)
+  end
+end
+
 def player_places_piece!(brd)
-  help_guide_open = false
+  help_guide_open = 'false'.dup # <- string object to pass into a method and mutate.
+  # ^ Per Rubocop, string literals are frozen but string objects returned by dup are mutable.
   loop do
     msg = "Choose a square to mark: #{joinor(empty_squares(brd))}"
-    msg += ' (enter h for help)' unless help_guide_open
+    msg += ' (enter h for help)' unless display_help_guide?(help_guide_open)
     prompt msg
-    square = gets.chomp
-    if square.start_with?('h') && !help_guide_open
-      display_help_guide
-      help_guide_open = true
-      next
-    end
-    if empty_squares(brd).include?(square.to_i)
-      brd[square.to_i] = PLAYER_MARKER
-      break
-    else
-      prompt "Sorry, that's not a valid choice"
-    end
+    input = gets.chomp
+    break if process_player_input(brd, input, display_help_guide?(help_guide_open))
+
+    display_help_guide?(help_guide_open, input)
   end
+end
+
+def joinor(empty_squares_arr, delimiter = ', ', conjunction = 'or')
+  case empty_squares_arr.size
+  when 0 then ''
+  when 1 then empty_squares_arr[0]
+  when 2 then empty_squares_arr.join(" #{conjunction} ")
+  else
+    joined_squares = empty_squares_arr.join(delimiter)
+    joined_squares.insert(-2, "#{conjunction} ")
+  end
+end
+
+def process_player_input(brd, input, help_guide_open)
+  return nil if input.start_with?('h') && !help_guide_open
+
+  if empty_squares(brd).include?(input.to_i)
+    brd[input.to_i] = PLAYER_MARKER
+    true
+  else
+    prompt "Sorry, that's not a valid choice"
+    false
+  end
+end
+
+def display_help_guide?(help_guide_open, input = '')
+  if input.start_with?('h') && help_guide_open == 'false'
+    prompt 'Enter a number to mark the corresponding empty square:'
+    puts ' 1 | 2 | 3 '
+    puts '---+---+---'
+    puts ' 4 | 5 | 6 '
+    puts '---+---+---'
+    puts ' 7 | 8 | 9 '
+    help_guide_open.replace('true')
+  end
+  help_guide_open == 'true'
 end
 
 def computer_places_piece!(brd, difficulty)
@@ -159,6 +172,28 @@ def play_normal(brd)
     random_square = empty_squares(brd).sample
     brd[random_square] = COMPUTER_MARKER
   end
+end
+
+def detect_at_risk_square(brd)
+  WINNING_LINES.each do |line|
+    next if brd.values_at(*line).count(PLAYER_MARKER) != 2
+
+    line.each do |square|
+      return square if brd[square] == INITIAL_MARKER
+    end
+  end
+  nil
+end
+
+def detect_winning_square(brd)
+  WINNING_LINES.each do |line|
+    next if brd.values_at(*line).count(COMPUTER_MARKER) != 2
+
+    line.each do |square|
+      return square if brd[square] == INITIAL_MARKER
+    end
+  end
+  nil
 end
 
 def board_full?(brd)
@@ -188,40 +223,6 @@ def update_and_display_scores(winner, player_score, comp_score)
   end
   prompt "Player score: #{player_score}, Computer score: #{comp_score}"
   [player_score, comp_score]
-end
-
-def detect_at_risk_square(brd)
-  WINNING_LINES.each do |line|
-    next if brd.values_at(*line).count(PLAYER_MARKER) != 2
-
-    line.each do |square|
-      return square if brd[square] == INITIAL_MARKER
-    end
-  end
-  nil
-end
-
-def detect_winning_square(brd)
-  WINNING_LINES.each do |line|
-    next if brd.values_at(*line).count(COMPUTER_MARKER) != 2
-
-    line.each do |square|
-      return square if brd[square] == INITIAL_MARKER
-    end
-  end
-  nil
-end
-
-def place_piece!(board, current_player, difficulty)
-  if current_player == 'Player'
-    player_places_piece!(board)
-  else
-    computer_places_piece!(board, difficulty)
-  end
-end
-
-def alternate_player(current_player)
-  current_player == 'Player' ? 'Computer' : 'Player'
 end
 
 def display_grand_winner(player_score, computer_score)
