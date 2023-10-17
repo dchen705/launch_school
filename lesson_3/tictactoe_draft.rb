@@ -352,12 +352,88 @@ Start of recursive call stack:
     Display match results
     Continue finite loop
   Display 
+  
+  Refactor case statement of validate_user_input into a method
 
+Help Popup
+
+puts ' 1 | 2 | 3 '
+puts '---+---+---'
+puts ' 4 | 5 | 6 '
+puts '---+---+---'
+puts ' 7 | 8 | 9 '
+ 
+ puts 
+ puts
+ gets.chomp
+ 
+  
+  
+  # ================================================
+def initiate_settings
+  settings = ['Difficulty', 'Total Matches', 'Who First']
+  difficulty = get_and_validate_input('Difficulty', "Please select the computer's difficulty:
+    \n   1 - Easy
+    \n   2 - Normal", %w[1 2])
+  total_matches = get_and_validate_input('Total Matches', 'Please select number of matches this game:
+  (3, 5 or 7)', %w[3 5 7])
+  who_first = get_and_validate_input('Who First', 'Would you like to choose who goes first? (y/n)', ['y'])
+  [difficulty, total_matches, who_first]
+end
+
+def get_and_validate_input(setting, msg, valid_options)
+  loop do
+    prompt msg
+    input = gets.chomp
+    input = input[0].downcase if setting == 'Who First'
+    return select_setting(setting, input) if valid_options.include?(input)
+
+    sleep 1
+    if ['Difficulty', 'Total Matches'].include?(setting)
+      prompt "Sorry, that's not a valid response."
+    elsif setting == 'Who First'
+      return %w[Player Computer].sample
+    end
+  end
+end
+
+def select_setting(setting, input)
+  case setting
+  when 'Difficulty'
+    input == '1' ? 'Easy' : 'Normal'
+  when 'Total Matches'
+    input.to_i
+  when 'Who First'
+    prompt 'Will you go first? (y/n)'
+    answer = gets.chomp
+    answer.start_with?('y') ? 'Player' : 'Computer'
+  end
+end
 
   
   
   # ================================================
+  Post code review
   
+  rubocop file named wrong - using wrong version
   
-  
-  # ================================================
+  user experience
+    Clear start screen
+    replace 2 questions with 1 question of three options
+    split 2 action methods into 1 action
+    remove redudant "next match?" 
+    add play another game?
+    
+  source code
+    used explicit comments to chunk code instead of visual delimiters
+    method organization
+      group into related components (try to isolate dependencies)
+      sort related components groups by chronology
+      within each group, sort methods from low to high level
+      ^ on second thought: I can place very low level indepedent one liner methods at the start
+        to sorta give a quick summary 
+    double assignment? - used hash instead of integers to keep score
+      less objects to pass into methods
+      can mutate a hash passed into a method
+    
+  appreciate the feedback, given reasoning for the recommendations. thorough and volume

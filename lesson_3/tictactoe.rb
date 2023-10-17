@@ -1,62 +1,12 @@
-# frozen_string_literal: true
-
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
 COMPUTER_MARKER = 'O'
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] + # rows
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] + # cols
                 [[1, 5, 9], [3, 5, 7]]              # diagonals
-# =========================================================
+# Game board and scores:
 def prompt(msg)
   puts "=> #{msg}"
-end
-
-def initiate_settings
-  difficulty = get_and_validate_input('Difficulty', "Please select the computer's difficulty:
-    \n   1 - Easy
-    \n   2 - Normal", %w[1 2])
-  total_matches = get_and_validate_input('Total Matches', 'Please select number of matches this game:
-  (3, 5 or 7)', %w[3 5 7])
-  who_first = get_and_validate_input('Who First', 'Would you like to choose who goes first? (y/n)', ['y'])
-  [difficulty, total_matches, who_first]
-end
-
-def get_and_validate_input(setting, msg, valid_options)
-  loop do
-    input = get_input(setting, msg)
-    return select_setting(setting, input) if valid_options.include?(input)
-
-    sleep 1
-    if ['Difficulty', 'Total Matches'].include?(setting)
-      prompt "Sorry, that's not a valid response."
-    elsif setting == 'Who First'
-      return %w[Player Computer].sample
-    end
-  end
-end
-
-def get_input(setting, msg)
-  prompt msg
-  input = gets.chomp
-  input = input[0].downcase if setting == 'Who First'
-  input
-end
-
-def select_setting(setting, input)
-  case setting
-  when 'Difficulty'
-    input == '1' ? 'Easy' : 'Normal'
-  when 'Total Matches'
-    input.to_i
-  when 'Who First'
-    prompt 'Will you go first? (y/n)'
-    answer = gets.chomp
-    answer.start_with?('y') ? 'Player' : 'Computer'
-  end
-end
-
-def alternate_player(current_player)
-  current_player == 'Player' ? 'Computer' : 'Player'
 end
 
 def initialize_board
@@ -66,7 +16,7 @@ def initialize_board
 end
 
 # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-def display_board(brd, round, total_matches)
+def display_board(brd, round, total_matches, scores)
   system 'clear'
   puts ''
   puts '     |     |     '
@@ -83,6 +33,10 @@ def display_board(brd, round, total_matches)
   puts ''
   prompt "Match #{round} of #{total_matches}"
   prompt "You're #{PLAYER_MARKER}. Computer's #{COMPUTER_MARKER}." if round == 1
+  if round > 1
+    prompt "Player score: #{scores[:Player]}, " \
+           "Computer score: #{scores[:Computer]}"
+  end
 end
 # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
@@ -90,28 +44,92 @@ def empty_squares(brd)
   brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
-def place_piece!(board, current_player, difficulty)
-  if current_player == 'Player'
-    player_places_piece!(board)
-  else
-    computer_places_piece!(board, difficulty)
+def board_full?(brd)
+  empty_squares(brd).empty?
+end
+
+def someone_won?(brd)
+  !!detect_match_winner(brd)
+end
+
+def detect_match_winner(brd)
+  WINNING_LINES.each do |line|
+    if brd.values_at(*line).all?(PLAYER_MARKER)
+      return 'Player'
+    elsif brd.values_at(*line).all?(COMPUTER_MARKER)
+      return 'Computer'
+    end
+  end
+  nil
+end
+
+def update_scores!(winner, scores)
+  if winner == 'Player'
+    scores[:Player] += 1
+  elsif winner == 'Computer'
+    scores[:Computer] += 1
   end
 end
 
-def player_places_piece!(brd)
-  help_guide_open = 'false'.dup # <- string object to pass into a method and mutate.
-  # ^ Per Rubocop, string literals are frozen but string objects returned by dup are mutable.
+def display_grand_winner(scores)
+  prompt "Final player score: #{scores[:Player]}, " \
+         "Final computer score: #{scores[:Computer]}"
+  case scores[:Player] <=> scores[:Computer]
+  when 0
+    prompt 'Game Over.'
+  when 1
+    prompt 'You are the grand winner! Game Over.'
+  when -1
+    prompt 'Computer is the grand winner! Game Over.'
+  end
+end
+
+# Initiating settings by user input:
+def select_setting(setting, input)
+  case setting
+  when 'Difficulty'
+    input == '1' ? 'Easy' : 'Normal'
+  when 'Total Matches'
+    input.to_i
+  when 'Who First'
+    case input
+    when '1'
+      'Player'
+    when '2'
+      'Computer'
+    end
+  end
+end
+
+def validate_input(setting, msg, valid_options)
   loop do
-    msg = "Choose a square to mark: #{joinor(empty_squares(brd))}"
-    msg += ' (enter h for help)' unless display_help_guide?(help_guide_open)
     prompt msg
     input = gets.chomp
-    break if process_player_input(brd, input, display_help_guide?(help_guide_open))
-
-    display_help_guide?(help_guide_open, input)
+    return select_setting(setting, input) if valid_options.include?(input)
+    return %w(Player Computer).sample if setting == 'Who First' && input == '3'
+    sleep 1
+    prompt "Sorry, that's not a valid response."
   end
 end
 
+def initiate_settings
+  difficulty = validate_input('Difficulty', 'Please select ' \
+  "the computer's difficulty:
+    \n   1 - Easy
+    \n   2 - Normal", %w(1 2))
+  total_matches = validate_input('Total Matches', 'Please ' \
+    'select number of matches this game:
+    (3, 5 or 7)', %w(3 5 7))
+  who_first = validate_input('Who First', 'Please select who ' \
+    "gets first turn of match 1:
+    \n 1 - You (Player)
+    \n 2 - Computer
+    \n 3 - Random", %w(1 2))
+
+  [difficulty, total_matches, who_first]
+end
+
+# Player turn helpers:
 def joinor(empty_squares_arr, delimiter = ', ', conjunction = 'or')
   case empty_squares_arr.size
   when 0 then ''
@@ -147,32 +165,7 @@ def display_help_guide?(help_guide_open, input = '')
   end
   help_guide_open == 'true'
 end
-
-def computer_places_piece!(brd, difficulty)
-  if difficulty == 'Easy'
-    play_easy(brd)
-  elsif difficulty == 'Normal'
-    play_normal(brd)
-  end
-end
-
-def play_easy(brd)
-  random_square = empty_squares(brd).sample
-  brd[random_square] = COMPUTER_MARKER
-end
-
-def play_normal(brd)
-  if detect_winning_square(brd)
-    brd[detect_winning_square(brd)] = COMPUTER_MARKER
-  elsif detect_at_risk_square(brd)
-    brd[detect_at_risk_square(brd)] = COMPUTER_MARKER
-  elsif empty_squares(brd).include?(5)
-    brd[5] = COMPUTER_MARKER
-  else
-    random_square = empty_squares(brd).sample
-    brd[random_square] = COMPUTER_MARKER
-  end
-end
+# Computer turn helpers:
 
 def detect_at_risk_square(brd)
   WINNING_LINES.each do |line|
@@ -196,82 +189,97 @@ def detect_winning_square(brd)
   nil
 end
 
-def board_full?(brd)
-  empty_squares(brd).empty?
+def play_easy(brd)
+  random_square = empty_squares(brd).sample
+  brd[random_square] = COMPUTER_MARKER
 end
 
-def someone_won?(brd)
-  !!detect_match_winner(brd)
-end
-
-def detect_match_winner(brd)
-  WINNING_LINES.each do |line|
-    if brd.values_at(*line).all?(PLAYER_MARKER)
-      return 'Player'
-    elsif brd.values_at(*line).all?(COMPUTER_MARKER)
-      return 'Computer'
-    end
-  end
-  nil
-end
-
-def update_and_display_scores(winner, player_score, comp_score)
-  if winner == 'Player'
-    player_score += 1
-  elsif winner == 'Computer'
-    comp_score += 1
-  end
-  prompt "Player score: #{player_score}, Computer score: #{comp_score}"
-  [player_score, comp_score]
-end
-
-def display_grand_winner(player_score, computer_score)
-  case player_score <=> computer_score
-  when 0
-    prompt 'Game Over.'
-  when 1
-    prompt 'You are the grand winner! Game Over.'
-  when -1
-    prompt 'Computer is the grand winner! Game Over.'
+def play_normal(brd)
+  if detect_winning_square(brd)
+    brd[detect_winning_square(brd)] = COMPUTER_MARKER
+  elsif detect_at_risk_square(brd)
+    brd[detect_at_risk_square(brd)] = COMPUTER_MARKER
+  elsif empty_squares(brd).include?(5)
+    brd[5] = COMPUTER_MARKER
+  else
+    random_square = empty_squares(brd).sample
+    brd[random_square] = COMPUTER_MARKER
   end
 end
-# =========================================================
-prompt 'Welcome to Tic-Tac-Toe!'
-sleep 1
-difficulty, total_matches, who_first = initiate_settings
-player_score = 0
-computer_score = 0
+# Main actions:
 
-total_matches.times do |round|
-  current_player = who_first
-  who_first = alternate_player(who_first)
-  board = initialize_board
-  display_board(board, round + 1, total_matches)
+def alternate_player(current_player)
+  current_player == 'Player' ? 'Computer' : 'Player'
+end
 
+def player_places_piece!(brd)
+  help_guide_open = 'false'.dup
   loop do
-    sleep 1 if current_player == 'Computer'
-    place_piece!(board, current_player, difficulty)
-    display_board(board, round + 1, total_matches)
-    current_player = alternate_player(current_player)
-    break if someone_won?(board) || board_full?(board)
-  end
+    msg = "Choose a square to mark: #{joinor(empty_squares(brd))}"
+    msg += ' (enter h for help)' unless display_help_guide?(help_guide_open)
+    prompt msg
+    input = gets.chomp
+    break if
+      process_player_input(brd, input, display_help_guide?(help_guide_open))
 
-  if someone_won?(board)
-    match_winner = detect_match_winner(board)
-    prompt "#{match_winner} won!"
+    display_help_guide?(help_guide_open, input)
+  end
+end
+
+def computer_places_piece!(brd, difficulty)
+  if difficulty == 'Easy'
+    play_easy(brd)
+  elsif difficulty == 'Normal'
+    play_normal(brd)
+  end
+end
+
+def place_piece!(board, current_player, difficulty)
+  if current_player == 'Player'
+    player_places_piece!(board)
   else
-    prompt "It's a tie!"
+    computer_places_piece!(board, difficulty)
+  end
+end
+# main game loop
+loop do
+  system 'clear'
+  prompt 'Welcome to Tic-Tac-Toe!'
+  sleep 1
+  difficulty, total_matches, who_first = initiate_settings
+  scores = { Player: 0, Computer: 0 }
+
+  total_matches.times do |round|
+    sleep 2 if round > 0
+    current_player = who_first
+    who_first = alternate_player(who_first)
+    board = initialize_board
+    display_board(board, round + 1, total_matches, scores)
+
+    loop do
+      sleep 1 if current_player == 'Computer'
+      place_piece!(board, current_player, difficulty)
+      display_board(board, round + 1, total_matches, scores)
+      current_player = alternate_player(current_player)
+      break if someone_won?(board) || board_full?(board)
+    end
+
+    if someone_won?(board)
+      match_winner = detect_match_winner(board)
+      prompt "#{match_winner} won!"
+    else
+      prompt "It's a tie!"
+    end
+
+    update_scores!(match_winner, scores)
+
+    display_grand_winner(scores) if round == total_matches - 1
   end
 
-  player_score, computer_score = update_and_display_scores(match_winner, player_score, computer_score)
-
-  if round == total_matches - 1
-    display_grand_winner(player_score, computer_score)
-  else
-    prompt 'Start next match? (y/n)'
-    answer = gets.chomp
-    break if answer.downcase.start_with?('n')
-  end
+  prompt 'Would you like to restart the game? (y/n)'
+  answer = gets.chomp
+  next if answer.start_with?('y')
+  break
 end
 
 prompt 'Thanks for playing Tic-Tac-Toe!'
