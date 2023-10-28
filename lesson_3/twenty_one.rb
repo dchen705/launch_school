@@ -68,7 +68,7 @@ CARD VALUES:
 end
 
 # MESSAGING > RESULTS
-def display_winner(winner, hand_sums)
+def display_winner(winner)
   case winner
   when :Player
     prompt 'You won the match!'
@@ -251,6 +251,28 @@ def hit!(deck, hands, hand_sums)
   draw!(:Player, deck, hands)
   update_hand_sums!(:Player, hands, hand_sums)
 end
+
+def end_round(hands, hand_sums, scoreboard, known_winner: nil)
+  if known_winner
+    loser = known_winner == :Player ? :Dealer : :Player
+    update_score!(known_winner, scoreboard)
+    display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
+    prompt "#{loser} busted. #{known_winner} wins!"
+  else
+    winner = decide_winner(hand_sums)
+    update_score!(winner, scoreboard)
+    display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
+    reply "Dealer decided to stay."
+    display_winner(winner)
+  end
+end
+
+def next_round(round, total_rounds)
+  unless round == total_rounds - 1
+    prompt 'Press enter for next round.'
+    gets
+  end
+end
 # -------------------- CALCULATION METHODS --------------------
 # CALCULATION > HAND
 
@@ -320,28 +342,16 @@ loop do
     player_turn(deck, hands, hand_sums, scoreboard)
 
     if bust?(:Player, hand_sums)
-      update_score!(:Dealer, scoreboard)
-      display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
-      prompt 'You busted. You lose!'
+      end_round(hands, hand_sums, scoreboard, known_winner: :Dealer)
     else
       dealer_turn(deck, hands, hand_sums, scoreboard)
-
       if bust?(:Dealer, hand_sums)
-        update_score!(:Player, scoreboard)
-        display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
-        prompt "Dealer busted. You win!"
+        end_round(hands, hand_sums, scoreboard, known_winner: :Player)
       else
-        winner = decide_winner(hand_sums)
-        update_score!(winner, scoreboard)
-        display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
-        reply "Dealer decided to stay."
-        display_winner(winner, hand_sums)
+        end_round(hands, hand_sums, scoreboard)
       end
     end
-    unless round == total_rounds - 1
-      prompt 'Press enter for next round.'
-      gets
-    end
+    next_round(round, total_rounds)
   end
   display_grand_winner(scoreboard)
   prompt 'Restart game? (y/n)'
@@ -351,9 +361,3 @@ loop do
 end
 
 puts "Thanks for playing Twenty-One! Goodbye."
-
-# Possible Improvements:
-## - either changing `graphicalize_hand` method or
-##   breaking apart the `graphicalize_each_card_then_split_into_rows`
-##   method (to make easier to understand).
-## - further abstracting out the main game loop
