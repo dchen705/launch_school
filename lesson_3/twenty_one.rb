@@ -43,34 +43,32 @@ end
 
 def display_rules
   puts <<-RULES
-WIN CONDITION: Player vs Dealer - Whoever draws a hand closest to 21 without
-going over wins. Going over 21 is an immediate loss and is called a bust.
+HOW TO WIN: Player (You) vs Dealer - Whoever draws a hand closest to 21 in value
+without going over wins. Going over 21 is an immediate loss and is called a bust.
+
+GAMEPLAY:
+
+  - Player:
+    1) Game starts and both Parties are dealt 2 cards.
+    2) Player goes first and can choose to either hit (draw another card) or
+       stay (end turn).
+    3) After Player hits, Player continues choosing 'hit or stay' until they bust
+       or choose stay.
+
+  - Dealer:
+    1) Dealer will continuously hit until their hand is at least 17.
+        - Once dealer stays too, winner then gets decided.
 
 CARD VALUES:
   - 1-10 are face value
   - Jack, Queen, King are worth 10.
   - Ace is worth 11 unless being worth 11 causes sum in hand to be over 21 in
     which case that Ace is worth 1.
-
-GAME FLOW:
-  1) INTIAL DEAL
-    - Both Parties are dealed 2 cards.
-  2) PLAYER TURN
-    - Player can see own hand and 1 of Dealer's cards.
-    - During each turn, both Parties can choose 1 of 2 actions.
-        1) Hit = draw (*can keep drawing until stay or bust)
-        2) Stay = not draw and end turn
-    - If Player stays before busting, Dealer's turn starts.
-  3) DEALER TURN
-    - Dealer will keep hitting until at least 17
-    - If both Parties stay and neither bust, then...
-  4) DECIDE WINNER
   RULES
 end
 
 # MESSAGING > RESULTS
 def display_winner(winner, hand_sums)
-  puts "Dealer sum: #{hand_sums[:Dealer]}"
   case winner
   when :Player
     prompt 'You won the match!'
@@ -114,37 +112,44 @@ end
 
 # GAME FLOW > DISPLAY
 
-def display_board(hands, hand_sums, scoreboard, player_choosing: false,
-                  end_game: false)
+def display_board(hands, hand_sums, scoreboard, dealer_reveal: false)
   system 'clear'
+  display_scoreboard(scoreboard)
+  display_hand(:Dealer, hands, dealer_reveal: dealer_reveal)
+  put_line_border
+  display_hand(:Player, hands)
+  display_sums(hand_sums, dealer_reveal: dealer_reveal)
+end
+
+def display_sums(hand_sums, dealer_reveal: false)
+  puts "Player sum: #{hand_sums[:Player]}"
+  puts "Dealer sum: #{hand_sums[:Dealer]}" if dealer_reveal
+end
+
+def display_scoreboard(scoreboard)
   score_msg = "Player: #{scoreboard['Scores'][:Player]}, " \
               "Dealer: #{scoreboard['Scores'][:Dealer]}"
   display_centered("Round #{scoreboard['Current Round']} of " \
                    "#{scoreboard['Total Rounds']}")
   puts score_msg.rjust(DISPLAY_LENGTH)
-  display_hand(:Dealer, hands, end_game: end_game)
-
-  put_line_border
-  display_hand(:Player, hands)
-  puts "Player sum: #{hand_sums[:Player]}"
-  prompt 'Hit or stay?' if player_choosing
 end
 
-def display_hand(who, hands, end_game: false)
+def display_hand(hand_holder, hands, dealer_reveal: false)
   # Example Card Structure:
   # ['♥', '2']
   # Example Hand Structure:
   # [["♣", "6"], ["♥", "6"], ["♣", "2"]]
-  puts "#{who}'s Hand:"
-  return if hands[who].empty?
-  hand = [hands[who][0]] + hands[who][1..-1].map { ['?', ' '] }
-  hand = hands[who] if end_game || who == :Player
+  puts "#{hand_holder}'s Hand:"
+  return if hands[hand_holder].empty?
+  hand = [hands[hand_holder][0]] + hands[hand_holder][1..-1].map { ['?', ' '] }
+  hand = hands[hand_holder] if dealer_reveal || hand_holder == :Player
   hand = graphicalize_hand(hand)
   puts hand
 end
 
 def graphicalize_hand(hand)
-  set_of_cards_as_rows = graphicalize_each_card_then_split_into_rows(hand)
+  set_of_card_graphics = graphicalize_each_card(hand)
+  set_of_cards_as_rows = split_card_graphics_into_rows(set_of_card_graphics)
   set_of_unjoined_graphic_rows = []
   num_of_rows_to_print = set_of_cards_as_rows[0].size
   num_of_rows_to_print.times { set_of_unjoined_graphic_rows << [] }
@@ -157,27 +162,37 @@ def graphicalize_hand(hand)
   set_of_unjoined_graphic_rows.map(&:join)
 end
 
-def graphicalize_each_card_then_split_into_rows(hand)
-  hand.reduce([]) do |set_of_cards_as_rows, (suit, value)|
-    card = <<-CARD
+def graphicalize_each_card(hand)
+  hand.map do |suit, value|
+    <<-CARD
       ╔═══╗
       ║#{value}  ║
       ║ #{suit} ║
       ║  #{value}║
       ╚═══╝
     CARD
+  end
+end
+
+def split_card_graphics_into_rows(hand)
+  hand.each_with_object([]) do |card, set_of_cards_as_rows|
     card_as_rows = card.split("\n")
-    if value == '10'
-      card_as_rows[1].slice!(card_as_rows[1].index('10') + 2)
-      card_as_rows[-2].slice!(card_as_rows[-2].index('10') - 1)
-    end
+    adjust_rows_if_10!(card_as_rows)
     set_of_cards_as_rows << card_as_rows
   end
 end
+
+def adjust_rows_if_10!(card_as_rows)
+  if card_as_rows[1].index('10')
+    card_as_rows[1].slice!(card_as_rows[1].index('10') + 2)
+    card_as_rows[-2].slice!(card_as_rows[-2].index('10') - 1)
+  end
+end
+
 # GAME FLOW > TURN CONTROL
 
-def draw!(who, deck, hands)
-  hands[who] << deck.pop
+def draw!(who_draws, deck, hands)
+  hands[who_draws] << deck.pop
 end
 
 def starting_deal(deck, hands)
@@ -194,7 +209,8 @@ end
 
 def player_turn(deck, hands, hand_sums, scoreboard)
   update_hand_sums!(:Player, hands, hand_sums)
-  display_board(hands, hand_sums, scoreboard, player_choosing: true)
+  update_hand_sums!(:Dealer, hands, hand_sums)
+  display_board(hands, hand_sums, scoreboard)
   play_hit_stay(deck, hands, hand_sums, scoreboard)
   display_board(hands, hand_sums, scoreboard)
   reached_max(hand_sums, try_display: true)
@@ -207,7 +223,7 @@ def dealer_turn(deck, hands, hand_sums, scoreboard)
     reply('Dealer is deciding...', delay: 1.5)
     draw!(:Dealer, deck, hands)
     update_hand_sums!(:Dealer, hands, hand_sums)
-    display_board(hands, hand_sums, scoreboard, player_choosing: false)
+    display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
     reply('Dealer decided to hit.', delay: 1)
   end
 end
@@ -215,11 +231,12 @@ end
 def play_hit_stay(deck, hands, hand_sums, scoreboard)
   loop do
     break if reached_max(hand_sums)
+    prompt 'Hit or stay?'
     answer = gets.chomp
     if answer.start_with?('h')
       hit!(deck, hands, hand_sums)
       break if bust?(:Player, hand_sums) || reached_max(hand_sums)
-      display_board(hands, hand_sums, scoreboard, player_choosing: true)
+      display_board(hands, hand_sums, scoreboard)
     elsif answer.start_with?('s')
       reply 'You decided to stay!'
       break
@@ -237,8 +254,8 @@ end
 # -------------------- CALCULATION METHODS --------------------
 # CALCULATION > HAND
 
-def bust?(who, hand_sums)
-  hand_sums[who] > MAX_SUM
+def bust?(hand_holder, hand_sums)
+  hand_sums[hand_holder] > MAX_SUM
 end
 
 def reached_max(hand_sums, try_display: false)
@@ -248,10 +265,10 @@ def reached_max(hand_sums, try_display: false)
   hand_sums[:Player] == MAX_SUM
 end
 
-def update_hand_sums!(who, hands, hand_sums)
-  return if hands[who].empty?
+def update_hand_sums!(hand_holder, hands, hand_sums)
+  return if hands[hand_holder].empty?
   aces_counter = 0
-  sum = hands[who].reduce(0) do |run_total, card|
+  sum = hands[hand_holder].reduce(0) do |run_total, card|
     value = card[1]
     if value == 'A'
       aces_counter += 1
@@ -262,7 +279,7 @@ def update_hand_sums!(who, hands, hand_sums)
       run_total + value.to_i
     end
   end
-  hand_sums[who] = adjust_aces(sum, aces_counter)
+  hand_sums[hand_holder] = adjust_aces(sum, aces_counter)
 end
 
 def adjust_aces(sum, aces_counter)
@@ -304,21 +321,20 @@ loop do
 
     if bust?(:Player, hand_sums)
       update_score!(:Dealer, scoreboard)
-      display_board(hands, hand_sums, scoreboard, end_game: true)
+      display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
       prompt 'You busted. You lose!'
     else
       dealer_turn(deck, hands, hand_sums, scoreboard)
 
       if bust?(:Dealer, hand_sums)
         update_score!(:Player, scoreboard)
-        display_board(hands, hand_sums, scoreboard, end_game: true)
+        display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
         prompt "Dealer busted. You win!"
-        puts "Dealer sum: #{hand_sums[:Dealer]}"
       else
         winner = decide_winner(hand_sums)
         update_score!(winner, scoreboard)
-        display_board(hands, hand_sums, scoreboard, end_game: true)
-        prompt "Dealer decided to stay."
+        display_board(hands, hand_sums, scoreboard, dealer_reveal: true)
+        reply "Dealer decided to stay."
         display_winner(winner, hand_sums)
       end
     end

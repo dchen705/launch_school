@@ -176,3 +176,22 @@ puts <<-CARD
   ║  9║
   ╚═══╝
 CARD
+
+# ============================================================
+
+What I like about twenty-one game - first commit
+  overall surprised by how display_length constant easily adjusts display allowing me
+  to play on coderpad which is less than default 80
+  
+  grouped my methods.
+  
+  methods need work.
+  
+# ============================================================
+
+Post code-review revisions:
+- removed self evident, tried to make wording less algorithmic looking
+- renamed `who` parameters to `hand_holder`
+- eliminated `player_choosing` parameter by moving prompt 'hit or stay' into `play_hit_stay`
+
+- changed gameplay, revealed dealer's hand when dealer's turn
