@@ -31,7 +31,7 @@
 #     2) round three numbers
 #     3) format
   
-# calculate_degree_min_sec()
+# (1) calculate_degree_min_sec()
 #   get dividend and mod of float / float_to_i and assign to `degree` and `degree remainder` vars
 #   get dividend and mod of `deg_remainder` * deg_to_min / (deg_remainder` * deg_to_min)_to_i and assign to `min` and `min_remainder` vars
 #   get divident and mod of `min_remainder` * min_to_deg / float_to_i... etc..
