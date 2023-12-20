@@ -73,5 +73,46 @@ p substrings('abcde') == [
     'e'
   ]
 # ====================
+# 2nd Pass:
+# using `leading_substring` helper
+def leading_substring(str)
+  str.size.times.with_object([]) do |end_idx, arr|
+    arr << str[0..end_idx]
+  end
+end
+
+def substrings(str)
+  (0...str.size).each.with_object([]) do |start_idx, arr|
+    whole_substring = str[strt_idx..(str.size - 1)]
+    arr = arr + leading_substring(whole_substring)
+  end
+end
+
+def leading_substring(str)
+  str.size.times.with_object([]) do |end_idx, arr|
+    arr << str[0..end_idx]
+  end
+end
+
+def substrings(str)
+  (0...str.size).each.with_object([]) do |start_idx, arr|
+    whole_substring = str[start_idx..(str.size - 1)]
+    # why doesn't below work?
+    # arr = arr + leading_substring(whole_substring)
+    # arr represents the local block variable which is temporary to each iteration. the new `arr` of the next iteration will point back to the original argument array. you must mutate the argument array itself
+    arr << leading_substring(whole_substring)
+  end.flatten
+end
+p substrings('abcde') == [
+    'a', 'ab', 'abc', 'abcd', 'abcde',
+    'b', 'bc', 'bcd', 'bcde',
+    'c', 'cd', 'cde',
+    'd', 'de',
+    'e'
+  ]
 
 # ====================
+# lesson 1: each_with_object, with_object's parameter designated local varaible
+# doesn't work the way you expect - NOT a single block parameter-designated variable
+# shared between iteration; rather, a new block parameter designated variable (with same name)
+# gets initialized each time.

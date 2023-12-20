@@ -4,7 +4,7 @@
 
 cards = [2, 3, 4, 5, 6, 7, 8, 9, 10, :jack, :queen, :king, :ace]
 
-deck = { :hearts   => cards,
+deck = { :hearts   => cards, # call #dup on `cards` for every suit.
          :diamonds => cards,
          :clubs    => cards,
          :spades   => cards }
@@ -44,3 +44,9 @@ puts sum
 
 # On line 33, the Enumerable#reduce call (not Array#reduce) is iterating through each suit set, but on line 38, a type error is raised because we are calling Array#sum method on an array object that sometimes contains a mix of integers and symbols (from :jack, :queen, etc...). Funnily enough, on line 34-36, array#map is called on the array object for remaining cards but nothing is done with the transformed array returned by this method because map returns a new array which was never used. To fix this, simplest solution is to change to the mutative #map method so that `remaining_cards` elements all get transformed by the `score` method within the #map block. 
 # spent over 30 minutes - couldn't figure out 2nd part of question..
+# i think after 40 minutes I see it... Is it because, within the `deck` hash, 
+# all the values share the same name `cards` so they all reference the same array object rather than each being a unique set of 13 value card sets. Guess you can apply #dup on them.
+
+# 11/19/23
+# I went throught this same problem again and this time I understood it much faster.
+# took me about 10 minutes to identify errors and write up explanation
