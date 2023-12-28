@@ -85,3 +85,38 @@ def lights_on(n)
 end
 
 p lights_on(10)
+
+# revisited
+# 1000 lights
+# relationship
+#   - the number of factors of light n with (1..n) - and whether that number is odd or even determines if light is on or off respectively
+
+def lights(n)
+  (1..n).select do |light|
+    ((1..light).count do |potential_factor|
+      light % potential_factor == 0
+    end).odd?
+  end
+end
+
+similar other student''s
+def toggle_lights(n)
+  (1..n).select do |num|
+    toggle = false
+
+    1.upto(num) { |count| toggle = !toggle if num % count == 0 }
+    toggle
+  end
+end
+
+def lights(n)
+  result = []
+  (1..n).each do |switch_num|
+    switch_state = false
+    (1..n).each do |pass_num|
+      switch_state = !switch_state if switch_num % pass_num == 0
+    end
+    result << switch_num if switch_state
+  end
+  result
+end

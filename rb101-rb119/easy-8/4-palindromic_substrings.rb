@@ -142,6 +142,47 @@ p palindromes('knitting cassettes') == [
   'nittin', 'itti', 'tt', 'ss', 'settes', 'ette', 'tt'
 ]
 # ========================
+# Further exploration:
+I need them to clarify about ignoring nonalphabetical..
+  1 do they mean return an array of substrings where each substring discludes the nonalphas
+  2 or they mean return the array of substrings, leave original substrings but check if its palindrome
+  by ignoring nonalphas
+  
+I chose option 2:
+def get_substrings(str)
+  substrings = []
+  (0..(str.size - 1)).each do |start_idx|
+    (1..(str.size - start_idx)).each do |length|
+      substrings << str[start_idx, length]
+    end
+  end
+  substrings
+end
 
+def palindromes(str)
+  substrings = get_substrings(str)
+  
+  substrings.select do |substring|
+    substring = substring.downcase.delete('^a-z1-9')
+    if substring.size > 1
+      substring == substring.reverse
+    else
+      false
+    end
+  end
+end
+
+^ note this will change the 3rd test case to false becaues now
+substrings like "madam-" evaluate as palindromes since we ignore the "-"
+
+# Other students solution:
+not using #delete but #include instead:
+ALPHANUMERIC = Array('a'..'z') + Array('A'..'Z') + Array('0'..'9')
+
+def remove_non_alphanumerics(str)
+  str.chars.select do |char|
+    ALPHANUMERIC.include?(char)
+  end.join
+end
 
 # ========================

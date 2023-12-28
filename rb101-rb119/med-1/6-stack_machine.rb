@@ -2,6 +2,9 @@
 # watching - it took me about 6:30 to just digest everything but it was fine.
 # another thing was my initial vision wasn't what it ended up - which is fine.
 # my initial ideas may change.
+=>8:30 - high level starter idea + data structure
+.. - wrote some psuedocode - didn'' rly use but for brainstorming
+=> 12:20 - started writing code one component at a time
 
 # Lang fluency correction:
 # case statements which I tried to use as if statements
