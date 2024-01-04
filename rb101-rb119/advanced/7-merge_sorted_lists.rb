@@ -122,3 +122,74 @@ def merge(arr1, arr2)
     end
   end
 end
+
+DS intermed pathway
+[5, 9], [1, 7]
+idx1 - 0
+idx2 - 0
+return_arr = []
+->
+idx1 - 0
+idx2 - 1
+return_arr = [1]
+->
+if either idx1 < arr1 size || idx2 < arr2 size (limit)
+  ie: [1, 5, 7] then idx2 == 2 (after idx1 concats and incremented)
+  << arr1[idx1..-1] or __
+  ^^ 
+^^ need a loop that goes until either idx1 or idx2 hits limit 
+  ^ at start loop, return clauses for em
+  
+version 2: ~11:30 min
+high abstract summary
+- mutatively drop elements from each array (can dup if wanna keep original intact) return_arr [], while loop if arr1 not empty, mutatively remove first element of arr1 and append to arr2 to return_arr, <- before that while loop if arr2 not empty and if arr2 current elemnt is less than arr1 current element - inside concat first element of arr2 to return_arr, concat rest of arr2 until empty
+  low lvl algo
+  - initalize return_arr to []
+  - while arr1 not empty
+    while arr2 not empty && arr2 current ele < arr1 current ele
+      - concat arr2.shift to return arr
+    - concat arr1.shift to return_arr
+  - return_arr
+
+def merge(arr1, arr2)
+  return_arr = []
+  while !arr1.empty?
+    return_arr << arr2.shift while !arr2.empty? && arr2[0] < arr1[0]
+    return_arr << arr1.shift
+  end
+  return_arr << arr2.shift until arr2.empty?
+  return_arr
+end
+
+
+High abstract summary
+initialize 2 index counters and loop until both counter surpasses last index, return the remaining of other if either counter surpasses last index of respective array, while current arr2 index less than arr1 index element concat to current arr2, increment idx2 by +1 or vice versa...
+  Low lvl algo
+  - initialize return_arr = []
+  - idx1 and idx = 0
+  - loop while both idx1 < arr1 size and idx2 < arr2 size
+    - return return_arr + arr1[idx1..-1] unless idx2 < arr2 size
+    - return return_arr + arr2[idx2..-1] unless idx1 < arr1 size
+    - if arr2[idx2] less than arr1[idx]
+      - concat arr2[idx2] to return_arr
+      - idx2 +=1
+    - else  
+    - concat arr1[idx1] to return_arr
+    - idx1 +=1
+    end loop
+
+def merge(arr1, arr2)
+  return_arr = []
+  idx1, idx2 = 0, 0
+  while idx1 < arr1.size && idx2 < arr2.size
+    return return_arr + arr1[idx1..-1] unless idx2 < arr2.size
+    return return_arr + arr2[idx2..-1] unless idx1 < arr1.size
+    if arr2[idx2] < arr1[idx1]
+      return_arr << arr2[idx2]
+      idx2 += 1
+    else
+      return_arr << arr1[idx1]
+      idx1 += 1
+    end
+  end
+end
