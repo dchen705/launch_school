@@ -207,3 +207,105 @@ end
 def duplicate_count(text)
   text.downcase.chars.tally.count { |k, v| v > 1 }
 end
+
+=================================================================================
+find_uniq([ 1, 1, 1, 2, 1, 1 ]) == 2
+find_uniq([ 0, 0, 0.55, 0, 0 ]) == 0.55
+
+
+First attempt too slow:
+arr.find { |x| arr.count(x) == 1 }
+
+my 2nd approach
+def find_uniq(arr)
+  arr.find { |x| x != arr[0..2].find { |y| arr[0..2].count(y) >= 2}}
+end
+^ still slow like 2-10 seconds
+
+other''s
+i like this one:
+
+def find_uniq arr
+    arr.find.with_index{|n, i| n != arr[i-1] && n != arr[i+1]}
+end
+
+
+standard solution - why didn'' i think of this? honestly i considered uniq but thought it''t it be too slow
+def find_uniq(arr)
+  arr.uniq.each { |x| return x if arr.count(x) == 1 }
+end
+consistently 2.5 seconds
+
+# =================================================================================
+def comp(array1, array2)
+  array1.nil? || array2.nil? ? false : array1.sort.map {|v| v ** 2} == array2.sort
+end
+# =================================================================================
+
+group and count array elements into hash count object took like ~5-6 minutes
+
+~ 27 minutes
+# given - String
+# return - same string but for every word, even indexed chars are upcased, odd indexed chars are downcased
+
+# rules/requirements
+#   - only letters and spaces in String
+#   - spaces delimit words
+
+
+# "String" => "StRiNg"
+# "Weird string case" => "WeIrD StRiNg CaSe"
+
+# DS intermed pathway
+# "Weird string case" 
+
+# split into a new array, join back into new string, replace the old string with new string.
+
+# offset = 0 -> offset, index(' ', offset)
+
+# str[start_idx..offset-1] = str[start_idx..offset-1].chars.map.with_index do | index.even? char.downcase, charupcase
+# start_idx = 0 -> offset + 1
+# "Weird "
+# offset  -> offset, index(' ')
+# "string "
+
+# case"
+
+
+# "WeIrD StRiNg CaSe"
+
+# algo
+#   - given `str`
+#   - `space_idx` = 0
+#   - `start_idx` = 0
+#   - while `space_idx`
+#     `space_idx` = str.index(' ', space_idx)
+#     if space_idx
+#     `word_indices` = start_idx..space_idx - 1
+#     else
+#       word_indices = start_idx..-1
+#     end
+#     `str`[word_indices] = str[start_idx..offset-1].chars.map.with_index do | index.even? char.downcase, charupcase
+
+#     `start_idx = space_idx + 1
+
+def weirdcase(str)
+  space_idx = 0
+  start_idx = 0
+  while space_idx
+    space_idx = str.index(' ', space_idx + 1)
+    if space_idx
+      word_indices = start_idx..space_idx - 1
+      start_idx = space_idx + 1
+    else
+      word_indices = start_idx..-1
+    end
+    str[word_indices] = str[word_indices].chars.map.with_index do |char, idx|
+      idx.even? ? char.upcase : char.downcase
+    end.join
+  end
+  str
+end
+
+p weirdcase("String") == "StRiNg"
+p weirdcase("Weird string case") == "WeIrD StRiNg CaSe"
