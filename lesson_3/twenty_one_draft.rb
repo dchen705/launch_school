@@ -194,4 +194,4 @@ Post code-review revisions:
 - renamed `who` parameters to `hand_holder`
 - eliminated `player_choosing` parameter by moving prompt 'hit or stay' into `play_hit_stay`
 
-- changed gameplay, revealed dealer's hand when dealer's turn
+- changed gameplay, revealed dealer's hand and sum when dealer's turn
